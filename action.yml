@@ -1,0 +1,63 @@
+name: 'cicd-notifier'
+description: 'Send notifications to Slack or Telegram for CI/CD workflows'
+inputs:
+  action:
+    description: 'Action to perform: send or update'
+    required: true
+  channel:
+    description: 'Notification channel: slack or telegram'
+    required: true
+  message:
+    description: 'Message to send'
+    required: true
+  slack_api_key:
+    description: 'Slack API key'
+    required: false
+  slack_channel:
+    description: 'Slack channel ID'
+    required: false
+  telegram_api_key:
+    description: 'Telegram bot API key'
+    required: false
+  telegram_channel:
+    description: 'Telegram chat ID'
+    required: false
+  slack_msgid:
+    description: 'Slack message ID for update action'
+    required: false
+  telegram_msgid:
+    description: 'Telegram message ID for update action'
+    required: false
+  add_commit_info:
+    description: 'Whether to add commit information to the message'
+    required: false
+    default: 'false'
+  image_tag:
+    description: 'Docker image tag'
+    required: false
+  commit_sha:
+    description: 'Commit SHA'
+    required: false
+  branch:
+    description: 'Branch name'
+    required: false
+  author:
+    description: 'Commit author'
+    required: false
+  commit_time:
+    description: 'Commit time'
+    required: false
+  commit_msg:
+    description: 'Commit message'
+    required: false
+  workflow_name:
+    description: 'Workflow name'
+    required: false
+outputs:
+  message_id:
+    description: 'ID of the sent message'
+  channel_id:
+    description: 'ID of the channel (for Slack)'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
