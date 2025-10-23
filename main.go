@@ -69,7 +69,7 @@ func main() {
 		if ParsedInputs.AddCommitInfo {
 			msg = templateCommitInfo()
 		}
-		msg += fmt.Sprintf("* - %s*- %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
+		msg += fmt.Sprintf("* - %s:* %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
 		switch strings.ToLower(ParsedInputs.Channel) {
 		case "slack":
 			c, err := slack.InitClient(ParsedInputs.ApiKey)
@@ -111,7 +111,7 @@ func main() {
 				slog.Error("Failed get slack message Content", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			msg += fmt.Sprintf("- *%s*- %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
+			msg += fmt.Sprintf("- *%s:* %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
 			err = c.Delete(ParsedInputs.ChannelId, ParsedInputs.MsgID)
 			if err != nil {
 				slog.Error("Failed to delete slack message", slog.String("error", err.Error()))
