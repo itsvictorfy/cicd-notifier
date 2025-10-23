@@ -35,6 +35,7 @@ func init() {
 		CommitTime:   inputs["commit_time"],
 		CommitMsg:    inputs["commit_msg"],
 		WorkflowName: inputs["workflow_name"],
+		TimeZone:     inputs["timezone"],
 	}
 
 	// Parse Channel
@@ -58,13 +59,17 @@ func initDev() {
 func main() {
 	// Validate inputs
 	validateInputs()
-
+	tz, err := time.LoadLocation(ParsedInputs.TimeZone)
+	if err != nil {
+		slog.Info("Failed to load timezone: %v", slog.String("error", err.Error()))
+		tz = time.FixedZone("UTC", 3*60*60)
+	}
 	var msg string
 	if ParsedInputs.Action == "send" {
 		if ParsedInputs.AddCommitInfo {
 			msg = templateCommitInfo()
 		}
-		msg += fmt.Sprintf("* - %s*- %s \n", ParsedInputs.Message, time.Now())
+		msg += fmt.Sprintf("* - %s*- %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
 		switch strings.ToLower(ParsedInputs.Channel) {
 		case "slack":
 			c, err := slack.InitClient(ParsedInputs.ApiKey)
@@ -106,7 +111,7 @@ func main() {
 				slog.Error("Failed get slack message Content", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			msg += fmt.Sprintf(" - *%s*- %s \n", ParsedInputs.Message, time.Now())
+			msg += fmt.Sprintf("- *%s*- %s \n", ParsedInputs.Message, time.Now().In(tz).Format(time.DateTime))
 			err = c.Delete(ParsedInputs.ChannelId, ParsedInputs.MsgID)
 			if err != nil {
 				slog.Error("Failed to delete slack message", slog.String("error", err.Error()))

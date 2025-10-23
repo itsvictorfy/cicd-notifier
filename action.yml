@@ -16,7 +16,7 @@ inputs:
   channel_id:
     description: 'Channel/chat ID for the selected platform'
     required: true
-  msgid:
+  msg_id:
     description: 'Message ID for update action'
     required: false
   add_commit_info:
@@ -44,6 +44,10 @@ inputs:
   workflow_name:
     description: 'Workflow name'
     required: false
+  timezone:
+    description: 'Timezone used for the message'
+    required: false
+    default: "UTC"
 outputs:
   message_id:
     description: 'ID of the sent message'

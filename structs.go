@@ -16,4 +16,5 @@ type ActionInputs struct {
 	CommitTime    string // Optional: Commit time
 	CommitMsg     string // Optional: Commit Message
 	WorkflowName  string // Optional: WorkflowName
+	TimeZone      string // Optional: Timezone for messages
 }
