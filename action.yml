@@ -10,23 +10,14 @@ inputs:
   message:
     description: 'Message to send'
     required: true
-  slack_api_key:
-    description: 'Slack API key'
-    required: false
-  slack_channel:
-    description: 'Slack channel ID'
-    required: false
-  telegram_api_key:
-    description: 'Telegram bot API key'
-    required: false
-  telegram_channel:
-    description: 'Telegram chat ID'
-    required: false
-  slack_msgid:
-    description: 'Slack message ID for update action'
-    required: false
-  telegram_msgid:
-    description: 'Telegram message ID for update action'
+  api_key:
+    description: 'API key for the selected channel'
+    required: true
+  channel_id:
+    description: 'Channel/chat ID for the selected platform'
+    required: true
+  msgid:
+    description: 'Message ID for update action'
     required: false
   add_commit_info:
     description: 'Whether to add commit information to the message'

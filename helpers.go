@@ -61,55 +61,31 @@ func validateInputs() {
 		slog.Error("Wrong Operation", "action", ParsedInputs.Action)
 		os.Exit(1)
 	}
-
-	// Validate channel and required inputs
-	switch strings.ToLower(ParsedInputs.Channel) {
-	case "slack":
-		if err := hasAllRequiredInputs("slack"); err != nil {
-			slog.Error("Missing required inputs for Slack", "error", err)
-			os.Exit(1)
-		}
-	case "telegram":
-		if err := hasAllRequiredInputs("telegram"); err != nil {
-			slog.Error("Missing required inputs for Telegram", "error", err)
-			os.Exit(1)
-		}
-	default:
-		slog.Error("Unsupported channel specified", "channel", ParsedInputs.Channel)
+	if ParsedInputs.Message == "" {
+		slog.Error("message is required")
+		os.Exit(1)
+	}
+	if ParsedInputs.ApiKey == "" {
+		slog.Error("ApiKey is required")
+		os.Exit(1)
+	}
+	if ParsedInputs.Channel == "" {
+		slog.Error("channel is required")
+		os.Exit(1)
+	}
+	if ParsedInputs.ChannelId == "" {
+		slog.Error("channelId is required")
+		os.Exit(1)
+	}
+	if ParsedInputs.Action == "" {
+		slog.Error("action is missing")
+		os.Exit(1)
+	}
+	if ParsedInputs.Action == "update" && ParsedInputs.MsgID == "" {
+		slog.Error("Missing MsgId for Action-Update")
 		os.Exit(1)
 	}
 	fmt.Printf("%v\n", ParsedInputs)
-}
-
-func hasAllRequiredInputs(channel string) error {
-	if ParsedInputs.Message == "" {
-		return fmt.Errorf("message is required")
-	}
-	switch strings.ToLower(channel) {
-	case "slack":
-		if ParsedInputs.SlackApiKey == "" {
-			return fmt.Errorf("slack_api_key is required for Slack")
-		}
-		if ParsedInputs.SlackChannel == "" {
-			return fmt.Errorf("slack_channel is required for Slack")
-		}
-		if ParsedInputs.Action == "update" && ParsedInputs.SlackMsgID == "" {
-			return fmt.Errorf("slack_msgid is required for Slack update")
-		}
-	case "telegram":
-		if ParsedInputs.TelegramApiKey == "" {
-			return fmt.Errorf("telegram_api_key is required for Telegram")
-		}
-		if ParsedInputs.TelegramChannel == "" {
-			return fmt.Errorf("telegram_channel is required for Telegram")
-		}
-		if ParsedInputs.Action == "update" && ParsedInputs.TelegramMsgID == "" {
-			return fmt.Errorf("telegram_msgid is required for Telegram update")
-		}
-	default:
-		return fmt.Errorf("unsupported channel: %s", channel)
-	}
-	return nil
 }
 
 func templateCommitInfo() string {
@@ -136,5 +112,6 @@ func templateCommitInfo() string {
 	if ParsedInputs.CommitTime != "" {
 		msg += fmt.Sprintf("🕗 *Commit Time:* %s\n", ParsedInputs.CommitTime)
 	}
+	msg += "\n"
 	return msg
 }

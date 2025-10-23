@@ -7,181 +7,12 @@ import (
 	"testing"
 )
 
-func TestHasAllRequiredInputs(t *testing.T) {
-	tests := []struct {
-		name     string
-		channel  string
-		inputs   ActionInputs
-		expected bool
-	}{
-		{
-			name:    "Slack send with all required inputs",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "send",
-				Message:      "test message",
-				SlackApiKey:  "test_key",
-				SlackChannel: "test_channel",
-			},
-			expected: true,
-		},
-		{
-			name:    "Slack send missing message",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "send",
-				SlackApiKey:  "test_key",
-				SlackChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Slack send missing api key",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "send",
-				Message:      "test message",
-				SlackChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Slack send missing channel",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:      "send",
-				Message:     "test message",
-				SlackApiKey: "test_key",
-			},
-			expected: false,
-		},
-		{
-			name:    "Slack update with all required inputs",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "update",
-				Message:      "test message",
-				SlackApiKey:  "test_key",
-				SlackChannel: "test_channel",
-				SlackMsgID:   "123",
-			},
-			expected: true,
-		},
-		{
-			name:    "Slack update missing msgid",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "update",
-				Message:      "test message",
-				SlackApiKey:  "test_key",
-				SlackChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Telegram send with all required inputs",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:          "send",
-				Message:         "test message",
-				TelegramApiKey:  "test_key",
-				TelegramChannel: "test_channel",
-			},
-			expected: true,
-		},
-		{
-			name:    "Telegram send missing message",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:          "send",
-				TelegramApiKey:  "test_key",
-				TelegramChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Telegram send missing api key",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:          "send",
-				Message:         "test message",
-				TelegramChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Telegram send missing channel",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:         "send",
-				Message:        "test message",
-				TelegramApiKey: "test_key",
-			},
-			expected: false,
-		},
-		{
-			name:    "Telegram update with all required inputs",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:          "update",
-				Message:         "test message",
-				TelegramApiKey:  "test_key",
-				TelegramChannel: "test_channel",
-				TelegramMsgID:   "123",
-			},
-			expected: true,
-		},
-		{
-			name:    "Telegram update missing msgid",
-			channel: "telegram",
-			inputs: ActionInputs{
-				Action:          "update",
-				Message:         "test message",
-				TelegramApiKey:  "test_key",
-				TelegramChannel: "test_channel",
-			},
-			expected: false,
-		},
-		{
-			name:    "Missing message fails",
-			channel: "slack",
-			inputs: ActionInputs{
-				Action:       "send",
-				SlackApiKey:  "test_key",
-				SlackChannel: "test_channel",
-				// Message is empty
-			},
-			expected: false,
-		},
-		{
-			name:     "Unsupported channel",
-			channel:  "unsupported",
-			inputs:   ActionInputs{},
-			expected: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Set global ParsedInputs
-			ParsedInputs = tt.inputs
-
-			err := hasAllRequiredInputs(tt.channel)
-			if (err == nil) != tt.expected {
-				t.Errorf("hasAllRequiredInputs() error = %v, expected no error = %v", err, tt.expected)
-			}
-		})
-	}
-}
-
 func TestReadInputs(t *testing.T) {
 	// Set up environment variables
 	os.Setenv("INPUT_ACTION", "send")
 	os.Setenv("INPUT_MESSAGE", "test message")
-	os.Setenv("INPUT_SLACK_API_KEY", "slack_key")
-	os.Setenv("INPUT_SLACK_CHANNEL", "slack_chan")
-	os.Setenv("INPUT_TELEGRAM_API_KEY", "telegram_key")
-	os.Setenv("INPUT_TELEGRAM_CHANNEL", "telegram_chan")
+	os.Setenv("INPUT_API_KEY", "api_key")
+	os.Setenv("INPUT_CHANNEL_ID", "channel_id")
 	os.Setenv("INPUT_CHANNEL", "slack")
 	os.Setenv("INPUT_ADD_COMMIT_INFO", "true")
 	os.Setenv("INPUT_COMMIT_SHA", "abc123")
@@ -191,16 +22,13 @@ func TestReadInputs(t *testing.T) {
 	os.Setenv("INPUT_COMMIT_MSG", "test commit")
 	os.Setenv("INPUT_WORKFLOW_NAME", "test workflow")
 	os.Setenv("INPUT_IMAGE_TAG", "v1.0")
-	os.Setenv("INPUT_SLACK_MSGID", "msg123")
-	os.Setenv("INPUT_TELEGRAM_MSGID", "tmsg123")
+	os.Setenv("INPUT_MSGID", "msg123")
 	defer func() {
 		// Clean up
 		os.Unsetenv("INPUT_ACTION")
 		os.Unsetenv("INPUT_MESSAGE")
-		os.Unsetenv("INPUT_SLACK_API_KEY")
-		os.Unsetenv("INPUT_SLACK_CHANNEL")
-		os.Unsetenv("INPUT_TELEGRAM_API_KEY")
-		os.Unsetenv("INPUT_TELEGRAM_CHANNEL")
+		os.Unsetenv("INPUT_API_KEY")
+		os.Unsetenv("INPUT_CHANNEL_ID")
 		os.Unsetenv("INPUT_CHANNEL")
 		os.Unsetenv("INPUT_ADD_COMMIT_INFO")
 		os.Unsetenv("INPUT_COMMIT_SHA")
@@ -210,30 +38,26 @@ func TestReadInputs(t *testing.T) {
 		os.Unsetenv("INPUT_COMMIT_MSG")
 		os.Unsetenv("INPUT_WORKFLOW_NAME")
 		os.Unsetenv("INPUT_IMAGE_TAG")
-		os.Unsetenv("INPUT_SLACK_MSGID")
-		os.Unsetenv("INPUT_TELEGRAM_MSGID")
+		os.Unsetenv("INPUT_MSGID")
 	}()
 
 	inputs := readInputs()
 
 	expected := map[string]string{
-		"action":           "send",
-		"message":          "test message",
-		"slack_api_key":    "slack_key",
-		"slack_channel":    "slack_chan",
-		"telegram_api_key": "telegram_key",
-		"telegram_channel": "telegram_chan",
-		"channel":          "slack",
-		"add_commit_info":  "true",
-		"commit_sha":       "abc123",
-		"branch":           "main",
-		"author":           "testuser",
-		"commit_time":      "2023-01-01",
-		"commit_msg":       "test commit",
-		"workflow_name":    "test workflow",
-		"image_tag":        "v1.0",
-		"slack_msgid":      "msg123",
-		"telegram_msgid":   "tmsg123",
+		"action":          "send",
+		"message":         "test message",
+		"api_key":         "api_key",
+		"channel_id":      "channel_id",
+		"channel":         "slack",
+		"add_commit_info": "true",
+		"commit_sha":      "abc123",
+		"branch":          "main",
+		"author":          "testuser",
+		"commit_time":     "2023-01-01",
+		"commit_msg":      "test commit",
+		"workflow_name":   "test workflow",
+		"image_tag":       "v1.0",
+		"msgid":           "msg123",
 	}
 
 	for key, expectedValue := range expected {
@@ -274,7 +98,7 @@ func TestTemplateCommitInfo(t *testing.T) {
 
 	result := templateCommitInfo()
 
-	expected := "📦 *Github Workflow*\n\n📌 *Commit:* `abc123`\n🔖 *Branch:* `main`\n🛠️ *Workflow:* `CI`\n📝 *Message:* fix bug\n👤 *Author:* user\n🐳 *Image Tag:* v1.0\n🕗 *Commit Time:* 2023-01-01\n"
+	expected := "📦 *Github Workflow*\n\n📌 *Commit:* `abc123`\n🔖 *Branch:* `main`\n🛠️ *Workflow:* `CI`\n📝 *Message:* fix bug\n👤 *Author:* user\n🐳 *Image Tag:* v1.0\n🕗 *Commit Time:* 2023-01-01\n\n"
 	if result != expected {
 		t.Errorf("templateCommitInfo() = %q, expected %q", result, expected)
 	}
@@ -284,8 +108,8 @@ func TestReadInputsTemplateCommitInfoAndAddMessage(t *testing.T) {
 	// Set up environment variables
 	os.Setenv("INPUT_ACTION", "send")
 	os.Setenv("INPUT_MESSAGE", "Deployment completed successfully")
-	os.Setenv("INPUT_SLACK_API_KEY", "slack_key")
-	os.Setenv("INPUT_SLACK_CHANNEL", "slack_chan")
+	os.Setenv("INPUT_API_KEY", "api_key")
+	os.Setenv("INPUT_CHANNEL_ID", "channel_id")
 	os.Setenv("INPUT_CHANNEL", "slack")
 	os.Setenv("INPUT_ADD_COMMIT_INFO", "true")
 	os.Setenv("INPUT_COMMIT_SHA", "def456")
@@ -299,8 +123,8 @@ func TestReadInputsTemplateCommitInfoAndAddMessage(t *testing.T) {
 		// Clean up
 		os.Unsetenv("INPUT_ACTION")
 		os.Unsetenv("INPUT_MESSAGE")
-		os.Unsetenv("INPUT_SLACK_API_KEY")
-		os.Unsetenv("INPUT_SLACK_CHANNEL")
+		os.Unsetenv("INPUT_API_KEY")
+		os.Unsetenv("INPUT_CHANNEL_ID")
 		os.Unsetenv("INPUT_CHANNEL")
 		os.Unsetenv("INPUT_ADD_COMMIT_INFO")
 		os.Unsetenv("INPUT_COMMIT_SHA")
@@ -317,11 +141,11 @@ func TestReadInputsTemplateCommitInfoAndAddMessage(t *testing.T) {
 
 	// Simulate init logic
 	ParsedInputs = ActionInputs{
-		Action:       inputs["action"],
-		Message:      inputs["message"],
-		SlackApiKey:  inputs["slack_api_key"],
-		SlackChannel: inputs["slack_channel"],
-		Channel:      inputs["channel"],
+		Action:    inputs["action"],
+		Message:   inputs["message"],
+		ApiKey:    inputs["api_key"],
+		ChannelId: inputs["channel_id"],
+		Channel:   inputs["channel"],
 	}
 
 	// Parse AddCommitInfo
@@ -351,7 +175,7 @@ func TestReadInputsTemplateCommitInfoAndAddMessage(t *testing.T) {
 	// Add the message field at the end
 	finalMessage := commitMsg + ParsedInputs.Message
 
-	expected := "📦 *Github Workflow*\n\n📌 *Commit:* `def456`\n🔖 *Branch:* `develop`\n🛠️ *Workflow:* `Deploy`\n📝 *Message:* update feature\n👤 *Author:* developer\n🐳 *Image Tag:* v2.0\n🕗 *Commit Time:* 2023-01-02\nDeployment completed successfully"
+	expected := "📦 *Github Workflow*\n\n📌 *Commit:* `def456`\n🔖 *Branch:* `develop`\n🛠️ *Workflow:* `Deploy`\n📝 *Message:* update feature\n👤 *Author:* developer\n🐳 *Image Tag:* v2.0\n🕗 *Commit Time:* 2023-01-02\n\nDeployment completed successfully"
 	if finalMessage != expected {
 		t.Errorf("Final message = %q, expected %q", finalMessage, expected)
 	}
@@ -361,15 +185,15 @@ func TestSlackSendFlow(t *testing.T) {
 	// Set up environment variables for Slack send
 	os.Setenv("INPUT_ACTION", "send")
 	os.Setenv("INPUT_MESSAGE", "Test message")
-	os.Setenv("INPUT_SLACK_API_KEY", "test_slack_key")
-	os.Setenv("INPUT_SLACK_CHANNEL", "#test")
+	os.Setenv("INPUT_API_KEY", "test_slack_key")
+	os.Setenv("INPUT_CHANNEL_ID", "#test")
 	os.Setenv("INPUT_CHANNEL", "slack")
 	os.Setenv("INPUT_ADD_COMMIT_INFO", "false")
 	defer func() {
 		os.Unsetenv("INPUT_ACTION")
 		os.Unsetenv("INPUT_MESSAGE")
-		os.Unsetenv("INPUT_SLACK_API_KEY")
-		os.Unsetenv("INPUT_SLACK_CHANNEL")
+		os.Unsetenv("INPUT_API_KEY")
+		os.Unsetenv("INPUT_CHANNEL_ID")
 		os.Unsetenv("INPUT_CHANNEL")
 		os.Unsetenv("INPUT_ADD_COMMIT_INFO")
 	}()
@@ -377,21 +201,18 @@ func TestSlackSendFlow(t *testing.T) {
 	// Simulate init logic
 	inputs := readInputs()
 	ParsedInputs = ActionInputs{
-		Action:          strings.ToLower(inputs["action"]),
-		SlackMsgID:      inputs["slack_msgid"],
-		TelegramMsgID:   inputs["telegram_msgid"],
-		Message:         inputs["message"],
-		SlackApiKey:     inputs["slack_api_key"],
-		SlackChannel:    inputs["slack_channel"],
-		TelegramApiKey:  inputs["telegram_api_key"],
-		TelegramChannel: inputs["telegram_channel"],
-		ImageTag:        inputs["image_tag"],
-		CommitSha:       inputs["commit_sha"],
-		Branch:          inputs["branch"],
-		Author:          inputs["author"],
-		CommitTime:      inputs["commit_time"],
-		CommitMsg:       inputs["commit_msg"],
-		WorkflowName:    inputs["workflow_name"],
+		Action:       strings.ToLower(inputs["action"]),
+		MsgID:        inputs["msgid"],
+		Message:      inputs["message"],
+		ApiKey:       inputs["api_key"],
+		ChannelId:    inputs["channel_id"],
+		ImageTag:     inputs["image_tag"],
+		CommitSha:    inputs["commit_sha"],
+		Branch:       inputs["branch"],
+		Author:       inputs["author"],
+		CommitTime:   inputs["commit_time"],
+		CommitMsg:    inputs["commit_msg"],
+		WorkflowName: inputs["workflow_name"],
 	}
 	if channelStr := inputs["channel"]; channelStr != "" {
 		ParsedInputs.Channel = strings.TrimSpace(channelStr)
@@ -412,20 +233,14 @@ func TestSlackSendFlow(t *testing.T) {
 	if ParsedInputs.Channel != "slack" {
 		t.Errorf("ParsedInputs.Channel = %s, expected slack", ParsedInputs.Channel)
 	}
-	if ParsedInputs.SlackApiKey != "test_slack_key" {
-		t.Errorf("ParsedInputs.SlackApiKey = %s, expected test_slack_key", ParsedInputs.SlackApiKey)
+	if ParsedInputs.ApiKey != "test_slack_key" {
+		t.Errorf("ParsedInputs.ApiKey = %s, expected test_slack_key", ParsedInputs.ApiKey)
 	}
-	if ParsedInputs.SlackChannel != "#test" {
-		t.Errorf("ParsedInputs.SlackChannel = %s, expected #test", ParsedInputs.SlackChannel)
+	if ParsedInputs.ChannelId != "#test" {
+		t.Errorf("ParsedInputs.ChannelId = %s, expected #test", ParsedInputs.ChannelId)
 	}
 	if ParsedInputs.AddCommitInfo != false {
 		t.Errorf("ParsedInputs.AddCommitInfo = %v, expected false", ParsedInputs.AddCommitInfo)
-	}
-
-	// Check validation passes
-	err := hasAllRequiredInputs("slack")
-	if err != nil {
-		t.Errorf("hasAllRequiredInputs failed: %v", err)
 	}
 
 	// Simulate the send flow (without API call)
@@ -447,9 +262,9 @@ func TestSlackUpdateFlow(t *testing.T) {
 	// Set up environment variables for Slack update
 	os.Setenv("INPUT_ACTION", "update")
 	os.Setenv("INPUT_MESSAGE", "Updated message")
-	os.Setenv("INPUT_SLACK_API_KEY", "test_slack_key")
-	os.Setenv("INPUT_SLACK_CHANNEL", "#test")
-	os.Setenv("INPUT_SLACK_MSGID", "123456")
+	os.Setenv("INPUT_API_KEY", "test_slack_key")
+	os.Setenv("INPUT_CHANNEL_ID", "#test")
+	os.Setenv("INPUT_MSGID", "123456")
 	os.Setenv("INPUT_CHANNEL", "slack")
 	os.Setenv("INPUT_ADD_COMMIT_INFO", "true")
 	os.Setenv("INPUT_COMMIT_SHA", "abc123")
@@ -462,9 +277,9 @@ func TestSlackUpdateFlow(t *testing.T) {
 	defer func() {
 		os.Unsetenv("INPUT_ACTION")
 		os.Unsetenv("INPUT_MESSAGE")
-		os.Unsetenv("INPUT_SLACK_API_KEY")
-		os.Unsetenv("INPUT_SLACK_CHANNEL")
-		os.Unsetenv("INPUT_SLACK_MSGID")
+		os.Unsetenv("INPUT_API_KEY")
+		os.Unsetenv("INPUT_CHANNEL_ID")
+		os.Unsetenv("INPUT_MSGID")
 		os.Unsetenv("INPUT_CHANNEL")
 		os.Unsetenv("INPUT_ADD_COMMIT_INFO")
 		os.Unsetenv("INPUT_COMMIT_SHA")
@@ -479,21 +294,18 @@ func TestSlackUpdateFlow(t *testing.T) {
 	// Simulate init logic
 	inputs := readInputs()
 	ParsedInputs = ActionInputs{
-		Action:          strings.ToLower(inputs["action"]),
-		SlackMsgID:      inputs["slack_msgid"],
-		TelegramMsgID:   inputs["telegram_msgid"],
-		Message:         inputs["message"],
-		SlackApiKey:     inputs["slack_api_key"],
-		SlackChannel:    inputs["slack_channel"],
-		TelegramApiKey:  inputs["telegram_api_key"],
-		TelegramChannel: inputs["telegram_channel"],
-		ImageTag:        inputs["image_tag"],
-		CommitSha:       inputs["commit_sha"],
-		Branch:          inputs["branch"],
-		Author:          inputs["author"],
-		CommitTime:      inputs["commit_time"],
-		CommitMsg:       inputs["commit_msg"],
-		WorkflowName:    inputs["workflow_name"],
+		Action:       strings.ToLower(inputs["action"]),
+		MsgID:        inputs["msgid"],
+		Message:      inputs["message"],
+		ApiKey:       inputs["api_key"],
+		ChannelId:    inputs["channel_id"],
+		ImageTag:     inputs["image_tag"],
+		CommitSha:    inputs["commit_sha"],
+		Branch:       inputs["branch"],
+		Author:       inputs["author"],
+		CommitTime:   inputs["commit_time"],
+		CommitMsg:    inputs["commit_msg"],
+		WorkflowName: inputs["workflow_name"],
 	}
 	if channelStr := inputs["channel"]; channelStr != "" {
 		ParsedInputs.Channel = strings.TrimSpace(channelStr)
@@ -508,17 +320,11 @@ func TestSlackUpdateFlow(t *testing.T) {
 	if ParsedInputs.Action != "update" {
 		t.Errorf("ParsedInputs.Action = %s, expected update", ParsedInputs.Action)
 	}
-	if ParsedInputs.SlackMsgID != "123456" {
-		t.Errorf("ParsedInputs.SlackMsgID = %s, expected 123456", ParsedInputs.SlackMsgID)
+	if ParsedInputs.MsgID != "123456" {
+		t.Errorf("ParsedInputs.MsgID = %s, expected 123456", ParsedInputs.MsgID)
 	}
 	if !ParsedInputs.AddCommitInfo {
 		t.Errorf("ParsedInputs.AddCommitInfo = %v, expected true", ParsedInputs.AddCommitInfo)
-	}
-
-	// Check validation passes
-	err := hasAllRequiredInputs("slack")
-	if err != nil {
-		t.Errorf("hasAllRequiredInputs failed: %v", err)
 	}
 
 	// Simulate the update flow
@@ -530,7 +336,7 @@ func TestSlackUpdateFlow(t *testing.T) {
 	}
 	finalMessage := commitMsg + ParsedInputs.Message
 
-	expectedMessage := "📦 *Github Workflow*\n\n📌 *Commit:* `abc123`\n🔖 *Branch:* `main`\n🛠️ *Workflow:* `CI`\n📝 *Message:* fix\n👤 *Author:* user\n🐳 *Image Tag:* v1.0\n🕗 *Commit Time:* 2023-01-01\nUpdated message"
+	expectedMessage := "📦 *Github Workflow*\n\n📌 *Commit:* `abc123`\n🔖 *Branch:* `main`\n🛠️ *Workflow:* `CI`\n📝 *Message:* fix\n👤 *Author:* user\n🐳 *Image Tag:* v1.0\n🕗 *Commit Time:* 2023-01-01\n\nUpdated message"
 	if finalMessage != expectedMessage {
 		t.Errorf("Final message = %q, expected %q", finalMessage, expectedMessage)
 	}
@@ -540,15 +346,15 @@ func TestTelegramSendFlow(t *testing.T) {
 	// Set up environment variables for Telegram send
 	os.Setenv("INPUT_ACTION", "send")
 	os.Setenv("INPUT_MESSAGE", "Telegram test")
-	os.Setenv("INPUT_TELEGRAM_API_KEY", "test_telegram_key")
-	os.Setenv("INPUT_TELEGRAM_CHANNEL", "@testchannel")
+	os.Setenv("INPUT_API_KEY", "test_telegram_key")
+	os.Setenv("INPUT_CHANNEL_ID", "@testchannel")
 	os.Setenv("INPUT_CHANNEL", "telegram")
 	os.Setenv("INPUT_ADD_COMMIT_INFO", "false")
 	defer func() {
 		os.Unsetenv("INPUT_ACTION")
 		os.Unsetenv("INPUT_MESSAGE")
-		os.Unsetenv("INPUT_TELEGRAM_API_KEY")
-		os.Unsetenv("INPUT_TELEGRAM_CHANNEL")
+		os.Unsetenv("INPUT_API_KEY")
+		os.Unsetenv("INPUT_CHANNEL_ID")
 		os.Unsetenv("INPUT_CHANNEL")
 		os.Unsetenv("INPUT_ADD_COMMIT_INFO")
 	}()
@@ -556,21 +362,18 @@ func TestTelegramSendFlow(t *testing.T) {
 	// Simulate init logic
 	inputs := readInputs()
 	ParsedInputs = ActionInputs{
-		Action:          strings.ToLower(inputs["action"]),
-		SlackMsgID:      inputs["slack_msgid"],
-		TelegramMsgID:   inputs["telegram_msgid"],
-		Message:         inputs["message"],
-		SlackApiKey:     inputs["slack_api_key"],
-		SlackChannel:    inputs["slack_channel"],
-		TelegramApiKey:  inputs["telegram_api_key"],
-		TelegramChannel: inputs["telegram_channel"],
-		ImageTag:        inputs["image_tag"],
-		CommitSha:       inputs["commit_sha"],
-		Branch:          inputs["branch"],
-		Author:          inputs["author"],
-		CommitTime:      inputs["commit_time"],
-		CommitMsg:       inputs["commit_msg"],
-		WorkflowName:    inputs["workflow_name"],
+		Action:       strings.ToLower(inputs["action"]),
+		MsgID:        inputs["msgid"],
+		Message:      inputs["message"],
+		ApiKey:       inputs["api_key"],
+		ChannelId:    inputs["channel_id"],
+		ImageTag:     inputs["image_tag"],
+		CommitSha:    inputs["commit_sha"],
+		Branch:       inputs["branch"],
+		Author:       inputs["author"],
+		CommitTime:   inputs["commit_time"],
+		CommitMsg:    inputs["commit_msg"],
+		WorkflowName: inputs["workflow_name"],
 	}
 	if channelStr := inputs["channel"]; channelStr != "" {
 		ParsedInputs.Channel = strings.TrimSpace(channelStr)
@@ -585,17 +388,11 @@ func TestTelegramSendFlow(t *testing.T) {
 	if ParsedInputs.Channel != "telegram" {
 		t.Errorf("ParsedInputs.Channel = %s, expected telegram", ParsedInputs.Channel)
 	}
-	if ParsedInputs.TelegramApiKey != "test_telegram_key" {
-		t.Errorf("ParsedInputs.TelegramApiKey = %s, expected test_telegram_key", ParsedInputs.TelegramApiKey)
+	if ParsedInputs.ApiKey != "test_telegram_key" {
+		t.Errorf("ParsedInputs.ApiKey = %s, expected test_telegram_key", ParsedInputs.ApiKey)
 	}
-	if ParsedInputs.TelegramChannel != "@testchannel" {
-		t.Errorf("ParsedInputs.TelegramChannel = %s, expected @testchannel", ParsedInputs.TelegramChannel)
-	}
-
-	// Check validation passes
-	err := hasAllRequiredInputs("telegram")
-	if err != nil {
-		t.Errorf("hasAllRequiredInputs failed: %v", err)
+	if ParsedInputs.ChannelId != "@testchannel" {
+		t.Errorf("ParsedInputs.ChannelId = %s, expected @testchannel", ParsedInputs.ChannelId)
 	}
 
 	// Simulate the send flow

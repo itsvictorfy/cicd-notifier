@@ -23,21 +23,18 @@ func init() {
 	// Read inputs and initialize the struct
 	inputs := readInputs()
 	ParsedInputs = ActionInputs{
-		Action:          strings.ToLower(inputs["action"]),
-		SlackMsgID:      inputs["slack_msgid"],
-		TelegramMsgID:   inputs["telegram_msgid"],
-		Message:         inputs["message"],
-		SlackApiKey:     inputs["slack_api_key"],
-		SlackChannel:    inputs["slack_channel"],
-		TelegramApiKey:  inputs["telegram_api_key"],
-		TelegramChannel: inputs["telegram_channel"],
-		ImageTag:        inputs["image_tag"],
-		CommitSha:       inputs["commit_sha"],
-		Branch:          inputs["branch"],
-		Author:          inputs["author"],
-		CommitTime:      inputs["commit_time"],
-		CommitMsg:       inputs["commit_msg"],
-		WorkflowName:    inputs["workflow_name"],
+		Action:       strings.ToLower(inputs["action"]),
+		MsgID:        inputs["msgid"],
+		Message:      inputs["message"],
+		ApiKey:       inputs["api_key"],
+		ChannelId:    inputs["channel_id"],
+		ImageTag:     inputs["image_tag"],
+		CommitSha:    inputs["commit_sha"],
+		Branch:       inputs["branch"],
+		Author:       inputs["author"],
+		CommitTime:   inputs["commit_time"],
+		CommitMsg:    inputs["commit_msg"],
+		WorkflowName: inputs["workflow_name"],
 	}
 
 	// Parse Channel
@@ -70,12 +67,12 @@ func main() {
 		msg += fmt.Sprintf("* - %s*- %s \n", ParsedInputs.Message, time.Now())
 		switch strings.ToLower(ParsedInputs.Channel) {
 		case "slack":
-			c, err := slack.InitClient(ParsedInputs.SlackApiKey)
+			c, err := slack.InitClient(ParsedInputs.ApiKey)
 			if err != nil {
 				slog.Error("Failed to initialize slack client", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			chId, msgId, err := c.Send(ParsedInputs.SlackChannel, msg)
+			chId, msgId, err := c.Send(ParsedInputs.ChannelId, msg)
 			if err != nil {
 				slog.Error("Failed To Post Slack message", slog.String("error", err.Error()))
 				os.Exit(1)
@@ -83,12 +80,12 @@ func main() {
 			addOutput("message_id", msgId)
 			addOutput("channel_id", chId)
 		case "telegram":
-			c, err := telegram.InitClient(ParsedInputs.TelegramApiKey)
+			c, err := telegram.InitClient(ParsedInputs.ApiKey)
 			if err != nil {
 				slog.Error("Failed to initialize telegram client", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			msgId, err := c.Send(ParsedInputs.TelegramChannel, msg)
+			msgId, err := c.Send(ParsedInputs.ChannelId, msg)
 			if err != nil {
 				slog.Error("Failed To Post Telegram message", slog.String("error", err.Error()))
 				os.Exit(1)
@@ -99,23 +96,23 @@ func main() {
 	if ParsedInputs.Action == "update" {
 		switch strings.ToLower(ParsedInputs.Channel) {
 		case "slack":
-			c, err := slack.InitClient(ParsedInputs.SlackApiKey)
+			c, err := slack.InitClient(ParsedInputs.ApiKey)
 			if err != nil {
 				slog.Error("Failed to initialize slack client", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			msg, err = c.GetMsgContent(ParsedInputs.SlackChannel, ParsedInputs.TelegramMsgID)
+			msg, err = c.GetMsgContent(ParsedInputs.ChannelId, ParsedInputs.MsgID)
 			if err != nil {
 				slog.Error("Failed get slack message Content", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
 			msg += fmt.Sprintf(" - *%s*- %s \n", ParsedInputs.Message, time.Now())
-			err = c.Delete(ParsedInputs.SlackChannel, ParsedInputs.SlackMsgID)
+			err = c.Delete(ParsedInputs.ChannelId, ParsedInputs.MsgID)
 			if err != nil {
 				slog.Error("Failed to delete slack message", slog.String("error", err.Error()))
 				os.Exit(1)
 			}
-			chId, msgId, err := c.Send(ParsedInputs.SlackChannel, msg)
+			chId, msgId, err := c.Send(ParsedInputs.ChannelId, msg)
 			if err != nil {
 				slog.Error("Failed To send Slack message", slog.String("error", err.Error()))
 				os.Exit(1)
