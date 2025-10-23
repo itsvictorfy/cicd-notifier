@@ -24,7 +24,7 @@ func init() {
 	inputs := readInputs()
 	ParsedInputs = ActionInputs{
 		Action:       strings.ToLower(inputs["action"]),
-		MsgID:        inputs["msgid"],
+		MsgID:        inputs["msg_id"],
 		Message:      inputs["message"],
 		ApiKey:       inputs["api_key"],
 		ChannelId:    inputs["channel_id"],
