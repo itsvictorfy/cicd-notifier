@@ -10,7 +10,7 @@ permissions:
   id-token: write
   contents: write
   pull-requests: write
-  
+
 env:
   REGISTRY: docker.io/itsvictorfy
   IMAGE_NAME: cicd-notifier 
@@ -50,7 +50,6 @@ jobs:
           tags: |
             type=raw,value=v-0.0.${{ github.run_number }}
             type=raw,value=${{ steps.vars.outputs.short_sha }}
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         id: build
@@ -64,7 +63,7 @@ jobs:
 
       - name: Update action.yml
         run: |
-          sed -i "s|image: .*|image: 'docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}'|" ${{ env.TARGET_FILE }}
+          sed -i "s|image: .*|image: 'docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.short_sha }}'|" ${{ env.TARGET_FILE }}
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -78,4 +77,4 @@ jobs:
             --title "Update image to ${{ steps.vars.outputs.tag }}" \
             --body "Created by GitHub Action"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
