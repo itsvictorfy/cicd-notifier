@@ -14,7 +14,6 @@ env:
   REGISTRY: docker.io/itsvictorfy
   IMAGE_NAME: cicd-notifier 
   DOCKERFILE_PATH: Dockerfile
-  DOCKER_CONTEXT: .
   BRANCH: master
   TARGET_FILE: action.yml
 
@@ -46,7 +45,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.DOCKER_CONTEXT }}
+          context: .
           file: ${{ env.DOCKERFILE_PATH }}
           push: true
           tags: ${{ steps.vars.outputs.tags }}
