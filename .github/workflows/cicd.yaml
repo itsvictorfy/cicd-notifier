@@ -6,10 +6,11 @@ on:
       - "dev"
 
 permissions:
-  contents: read
   pages: write
   id-token: write
-
+  contents: write
+  pull-requests: write
+  
 env:
   REGISTRY: docker.io/itsvictorfy
   IMAGE_NAME: cicd-notifier 
@@ -60,10 +61,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
+
       - name: Update action.yml
         run: |
           sed -i "s|image: .*|image: 'docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}'|" ${{ env.TARGET_FILE }}
+
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
