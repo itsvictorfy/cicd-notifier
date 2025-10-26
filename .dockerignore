@@ -22,7 +22,7 @@ go.work
 go.work.sum
 
 # Test files
-# *_test.go
+*_test.go
 
 # Documentation
 README.md
