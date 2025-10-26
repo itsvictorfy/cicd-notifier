@@ -55,4 +55,4 @@ outputs:
     description: 'ID of the channel (for Slack)'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker.io/itsvictorfy/cicd-notifier:v0.0.5'
