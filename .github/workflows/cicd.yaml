@@ -68,13 +68,13 @@ jobs:
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Update image tag to ${{ steps.vars.outputs.tag  }}"
+          commit_message: "Update image tag to ${{ steps.vars.outputs.short_sha  }}"
           branch: dev       
 
       - name: Create pull request
         run: |
           gh pr create -B main -H dev \
-            --title "Update image to ${{ steps.vars.outputs.tag }}" \
+            --title "Update image to ${{ steps.vars.outputs.short_sha }}" \
             --body "Created by GitHub Action"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
