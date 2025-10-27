@@ -62,7 +62,7 @@ func main() {
 	tz, err := time.LoadLocation(ParsedInputs.TimeZone)
 	if err != nil {
 		slog.Info("Failed to load timezone: %v", slog.String("error", err.Error()))
-		tz = time.FixedZone("UTC", 3*60*60)
+		tz = time.UTC
 	}
 	var msg string
 	if ParsedInputs.Action == "send" {

@@ -1,0 +1,80 @@
+name: Build+Update
+
+on:
+  push:
+    branches:
+      - "dev"
+
+permissions:
+  pages: write
+  id-token: write
+  contents: write
+  pull-requests: write
+
+env:
+  REGISTRY: docker.io/itsvictorfy
+  IMAGE_NAME: cicd-notifier 
+  DOCKERFILE_PATH: Dockerfile
+  BRANCH: master
+  TARGET_FILE: action.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      short_sha: ${{ steps.vars.outputs.short_sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+          
+      - name: Set SHORT_SHA
+        id: vars
+        run: echo "short_sha=$(echo $GITHUB_SHA | cut -c1-8)" >> "$GITHUB_OUTPUT"
+
+      - name: Go Test
+        run: go test ./...
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=v-0.0.${{ github.run_number }}
+            type=raw,value=${{ steps.vars.outputs.short_sha }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE_PATH }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update action.yml
+        run: |
+          sed -i "s|image: .*|image: 'docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.short_sha }}'|" ${{ env.TARGET_FILE }}
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Update image tag to ${{ steps.vars.outputs.short_sha  }}"
+          branch: dev       
+
+      - name: Create pull request
+        run: |
+          gh pr create -B main -H dev \
+            --title "Update image to ${{ steps.vars.outputs.short_sha }}" \
+            --body "Created by GitHub Action"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
